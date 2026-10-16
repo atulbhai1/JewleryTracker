@@ -15,6 +15,7 @@ struct JewleryItemView: View{
     @Environment(\.dismiss) private var dismiss
     @State var showImageDeletionPopup: Bool = false
     @State var showDeletionPopup: Bool = false
+    @State private var selectedPicture: PhotosPickerItem?
     var jewleryItem: JewleryItem
     let defaults = UserDefaults(suiteName: "group.com.atulnitin1604.JewleryTracker") ?? .standard
     var body: some View {
@@ -35,9 +36,10 @@ struct JewleryItemView: View{
                                 Button("", systemImage: "trash.fill"){
                                     showImageDeletionPopup=true
                                 }.backgroundStyle(.white)
-                                    .buttonBorderShape(.circle)
-                                    .buttonStyle(.borderedProminent)
-                                    .padding()
+                                .buttonBorderShape(.circle)
+                                .buttonStyle(.borderedProminent)
+                                .padding()
+                                    
                             }.alert("Are you sure you want to delete this image?", isPresented: $showImageDeletionPopup){
                                 Button("Yes", role: .destructive){
                                     jewleryItem.photos.removeAll { $0 === photo }
@@ -51,9 +53,30 @@ struct JewleryItemView: View{
                         }
                         
                     }
-                    Button("Add Another Image", systemImage: "pencil"){
-                        print("ATUL FINISH MEEEEE")
-                    }
+                    PhotosPicker(
+                                    selection: $selectedPicture,
+                                    matching: .images, // Filter to only show images
+                                    photoLibrary: .shared()
+                                ) {
+                                    Label("Select a Photo", systemImage: "photo")
+                                        .font(.headline)
+                                        .padding()
+                                        .background(.yellow)
+                                        .foregroundColor(.white)
+                                        .clipShape(.capsule)
+                                        .cornerRadius(8)
+                                }
+                                .onChange(of: selectedPicture) { _, newValue in
+                                    guard let newValue else { return }
+                                    Task {
+                                        if let data = try? await newValue.loadTransferable(type: Data.self) {
+                                            let photo = JewelryPhoto(imageData: data)
+                                            modelContext.insert(photo)
+                                            jewleryItem.photos.append(photo)
+                                        }
+                                        selectedPicture = nil
+                                    }
+                                }
                 }
                 .tabViewStyle(.page)
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
@@ -88,11 +111,13 @@ struct JewleryItemView: View{
                 }
                 .padding(.horizontal)
             }
-        }.toolbar {
+        }
+        .scrollContentBackground(.hidden)
+        .toolbar {
             Button("", systemImage: "trash"){
                 showDeletionPopup = true
             }.labelStyle(.iconOnly)
-                .buttonStyle(.bordered)
+                //.buttonStyle(.bordered)
                 .tint(.blue)
         
         }.alert("Are you sure you want to delete this jewelery item?", isPresented: $showDeletionPopup){

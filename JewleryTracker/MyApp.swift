@@ -5,6 +5,7 @@ import SwiftData
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .background(Color(red: 246.0/255.0, green: 250.0/255.0, blue: 175.0/255.0).ignoresSafeArea())//246, 250, 175
                 .onAppear {
                     let defaults = UserDefaults(suiteName: "group.com.atulnitin1604.JewleryTracker") ?? .standard
                     if let lastUpdated = defaults.object(forKey: "lastUpdatedPrice") as? Date {
