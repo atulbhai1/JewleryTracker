@@ -19,7 +19,7 @@ struct JewleryItemView: View{
     var jewleryItem: JewleryItem
     let defaults = UserDefaults(suiteName: "group.com.atulnitin1604.JewleryTracker") ?? .standard
     var body: some View {
-        var goldPrice = defaults.integer(forKey: "GoldPrice")
+        let goldPrice = defaults.integer(forKey: "GoldPrice")
         let currentValue = jewleryItem.weight*(Decimal(jewleryItem.purity)/24.0)*Decimal(goldPrice)/31.1035
         let profit = currentValue - jewleryItem.purchasePrice
         ScrollView {
