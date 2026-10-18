@@ -24,7 +24,6 @@ struct JewleryItemView: View{
         let profit = currentValue - jewleryItem.purchasePrice
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                //Need to code, delete pictures option
                 TabView {
                     ForEach(jewleryItem.photos) { photo in
                         if let uiImage = UIImage(data: photo.imageData) {
@@ -111,16 +110,25 @@ struct JewleryItemView: View{
                 }
                 .padding(.horizontal)
             }
+            .padding(.top, 20)
         }
         .scrollContentBackground(.hidden)
+        .background(Color(red: 246.0/255.0, green: 250.0/255.0, blue: 175.0/255.0).ignoresSafeArea())
         .toolbar {
-            Button("", systemImage: "trash"){
-                showDeletionPopup = true
-            }.labelStyle(.iconOnly)
-                //.buttonStyle(.bordered)
-                .tint(.blue)
-        
-        }.alert("Are you sure you want to delete this jewelery item?", isPresented: $showDeletionPopup){
+            ToolbarItem(placement: .principal) {
+                Text(jewleryItem.name).font(.largeTitle).bold().foregroundStyle(.white)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("", systemImage: "trash"){
+                    showDeletionPopup = true
+                }.labelStyle(.iconOnly)
+                    .tint(.blue)
+            }
+        }
+        .toolbarBackground(.yellow, for: .navigationBar)
+        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .alert("Are you sure you want to delete this jewelery item?", isPresented: $showDeletionPopup){
             Button("Yes", role: .destructive){
                 for photo in jewleryItem.photos{
                     modelContext.delete(photo)
@@ -145,7 +153,7 @@ private func previewImageData(color: UIColor) -> Data {
 }
 
 #Preview {
-    let item = JewleryItem(weight: 5.2, purchasePrice: 450.00, purity: 22)
+    let item = JewleryItem(name: "Fine Jewel", weight: 5.2, purchasePrice: 450.00, purity: 22)
     item.photos = [
         JewelryPhoto(imageData: previewImageData(color: .systemYellow)),
         JewelryPhoto(imageData: previewImageData(color: .systemOrange)),

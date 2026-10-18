@@ -10,6 +10,7 @@ import Foundation
 
 @Model
 class JewleryItem {
+    var name: String
     var weight: Decimal
     var purchasePrice: Decimal
     var purity: Int
@@ -17,7 +18,8 @@ class JewleryItem {
     @Relationship(deleteRule: .cascade, inverse: \JewelryPhoto.item)
     var photos: [JewelryPhoto] = []
 
-    init(weight: Decimal, purchasePrice: Decimal, purity: Int) {
+    init(name:String, weight: Decimal, purchasePrice: Decimal, purity: Int) {
+        self.name = name
         self.weight = weight
         self.purchasePrice = purchasePrice
         self.purity = purity
