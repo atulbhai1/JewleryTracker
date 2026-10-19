@@ -10,12 +10,21 @@ import SwiftData
 import PhotosUI
 import UIKit
 
+private struct TitleWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
 struct JewleryItemView: View{
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State var showImageDeletionPopup: Bool = false
     @State var showDeletionPopup: Bool = false
     @State private var selectedPicture: PhotosPickerItem?
+    @State private var nameOverflowsTitleBar: Bool = false
+    private let titleBarMaxWidth: CGFloat = 300
     var jewleryItem: JewleryItem
     let defaults = UserDefaults(suiteName: "group.com.atulnitin1604.JewleryTracker") ?? .standard
     var body: some View {
@@ -24,6 +33,13 @@ struct JewleryItemView: View{
         let profit = currentValue - jewleryItem.purchasePrice
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                if nameOverflowsTitleBar{
+                    HStack{
+                        Spacer()
+                        Text(jewleryItem.name).font(.largeTitle).bold().multilineTextAlignment(.center).foregroundStyle(Color(red:92/255,green: 64/255, blue:51/255))
+                        Spacer()
+                    }
+                }
                 TabView {
                     ForEach(jewleryItem.photos) { photo in
                         if let uiImage = UIImage(data: photo.imageData) {
@@ -84,21 +100,21 @@ struct JewleryItemView: View{
                 VStack(alignment: .leading, spacing: 12) {
                     LabeledContent("Weight") {
                         Text("\(jewleryItem.weight.formatted()) g")
-                    }
+                    }.foregroundStyle(Color(red:92/255,green: 64/255, blue:51/255))
                     LabeledContent("Purchase Price") {
                         Text(jewleryItem.purchasePrice, format: .currency(code: "USD"))
-                    }
+                    }.foregroundStyle(Color(red:92/255,green: 64/255, blue:51/255))
                     LabeledContent("Purity") {
                         Text("\(jewleryItem.purity)k")
-                    }
+                    }.foregroundStyle(Color(red:92/255,green: 64/255, blue:51/255))
                     LabeledContent("Current Value"){
                         if currentValue > 0{
-                            Text("\(currentValue.formatted(.currency(code: "USD")))")
+                            Text("\(currentValue.formatted(.currency(code: "USD")))").foregroundStyle(Color(red:92/255,green: 64/255, blue:51/255))
                         }
                         else {
                             Text("Unable to fetch live gold price")
                         }
-                    }
+                    }.foregroundStyle(Color(red:92/255,green: 64/255, blue:51/255))
                     LabeledContent("Profit"){
                         if currentValue > 0{
                             Text("\(profit.formatted(.currency(code: "USD")))").foregroundStyle(profit > 0 ? .green : .red)
@@ -106,7 +122,7 @@ struct JewleryItemView: View{
                         else {
                             Text("Unable to fetch live gold price")
                         }
-                    }
+                    }.foregroundStyle(Color(red:92/255,green: 64/255, blue:51/255))
                 }
                 .padding(.horizontal)
             }
@@ -116,7 +132,34 @@ struct JewleryItemView: View{
         .background(Color(red: 246.0/255.0, green: 250.0/255.0, blue: 175.0/255.0).ignoresSafeArea())
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text(jewleryItem.name).font(.largeTitle).bold().foregroundStyle(.white)
+                ZStack {
+                    if !nameOverflowsTitleBar{
+                        Text(jewleryItem.name)
+                            .font(.largeTitle).bold()
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 20)
+                            .frame(maxWidth: titleBarMaxWidth)
+                    }
+                    Text(jewleryItem.name)
+                        .font(.largeTitle).bold()
+                        .padding(.horizontal, 20)
+                        .fixedSize()
+                        .hidden()
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear
+                                    .preference(key: TitleWidthKey.self, value: geo.size.width)
+                            }
+                        )
+                }
+                .onPreferenceChange(TitleWidthKey.self) { naturalWidth in
+                    nameOverflowsTitleBar = naturalWidth > titleBarMaxWidth
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink(destination: ItemAddView(presetItem: jewleryItem)){
+                    Label("modify", systemImage: "pencil")
+                }
             }
             ToolbarItem(placement: .primaryAction) {
                 Button("", systemImage: "trash"){
@@ -153,7 +196,7 @@ private func previewImageData(color: UIColor) -> Data {
 }
 
 #Preview {
-    let item = JewleryItem(name: "Fine Jewel", weight: 5.2, purchasePrice: 450.00, purity: 22)
+    let item = JewleryItem(name: "Navaratna Set", weight: 5.2, purchasePrice: 450.00, purity: 22)
     item.photos = [
         JewelryPhoto(imageData: previewImageData(color: .systemYellow)),
         JewelryPhoto(imageData: previewImageData(color: .systemOrange)),
